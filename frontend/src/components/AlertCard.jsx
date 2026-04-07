@@ -1,21 +1,27 @@
 function severityStyles(severity) {
   if (severity === "High") {
     return {
-      background: "from-[#2a1014]/90 to-[#331015]/70 border-red-400/20",
-      badge: "bg-[#ff6c6c] text-white",
+      background:
+        "from-[#2f1217]/95 via-[#271117]/90 to-[#17131d]/92 border-rose-400/20",
+      badge: "border-rose-400/20 bg-rose-400/12 text-rose-100",
+      line: "bg-rose-300",
     };
   }
 
   if (severity === "Medium") {
     return {
-      background: "from-[#2a1c0d]/90 to-[#34220e]/70 border-amber-400/20",
-      badge: "bg-[#ffb347] text-white",
+      background:
+        "from-[#2a1f11]/95 via-[#241b12]/90 to-[#17141a]/92 border-amber-300/20",
+      badge: "border-amber-300/20 bg-amber-300/12 text-amber-100",
+      line: "bg-amber-300",
     };
   }
 
   return {
-    background: "from-[#122033]/90 to-[#12283a]/70 border-sky-400/20",
-    badge: "bg-[#4fa7ff] text-white",
+    background:
+      "from-[#122536]/95 via-[#0f2232]/90 to-[#131822]/92 border-cyan-300/20",
+    badge: "border-cyan-300/20 bg-cyan-300/12 text-cyan-100",
+    line: "bg-cyan-300",
   };
 }
 
@@ -37,7 +43,7 @@ function AlertSkeleton() {
 export default function AlertCard({ alerts = [], loading }) {
   if (loading) {
     return (
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {[...Array(3)].map((_, index) => (
           <AlertSkeleton key={index} />
         ))}
@@ -54,29 +60,33 @@ export default function AlertCard({ alerts = [], loading }) {
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-3">
       {alerts.slice(0, 3).map((alert, idx) => {
         const styles = severityStyles(alert.severity);
 
         return (
           <article
             key={`${alert.type}-${idx}`}
-            className={`rounded-[22px] border bg-gradient-to-br ${styles.background} px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-300 hover:-translate-y-0.5`}
+            className={`relative overflow-hidden rounded-[28px] border bg-gradient-to-br ${styles.background} px-5 py-5 shadow-[0_24px_60px_rgba(2,8,23,0.18)] ring-1 ring-white/6 backdrop-blur-2xl transition duration-300 hover:-translate-y-0.5`}
           >
-            <div className="flex items-start justify-between gap-3">
+            <div className={`absolute left-0 top-6 h-16 w-1.5 rounded-r-full ${styles.line}`} />
+            <div className="flex items-start justify-between gap-3 pl-2">
               <div className="min-w-0">
-                <h3 className="text-[16px] font-semibold tracking-[-0.03em] text-white">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                  Incident snapshot
+                </p>
+                <h3 className="mt-3 text-[18px] font-semibold text-white">
                   {alert.type}
                 </h3>
-                <p className="mt-2 text-[13px] text-slate-300">
+                <p className="mt-2 text-[13px] uppercase tracking-[0.12em] text-slate-400">
                   IP: {alert.ip}
                 </p>
-                <p className="mt-4 border-t border-white/10 pt-3 text-[13px] leading-6 text-slate-200/90">
+                <p className="mt-4 border-t border-white/10 pt-4 text-[14px] leading-6 text-slate-200/90">
                   {alert.summary}
                 </p>
               </div>
               <span
-                className={`rounded-full px-3 py-1 text-[12px] font-semibold shadow-lg ${styles.badge}`}
+                className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] shadow-lg ${styles.badge}`}
               >
                 {alert.severity}
               </span>
