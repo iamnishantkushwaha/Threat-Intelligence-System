@@ -1,10 +1,14 @@
 import { useMemo } from "react";
+import AiSummaryPanel from "../components/AiSummaryPanel.jsx";
+import Badge from "../components/Badge.jsx";
 import SummaryCard from "../components/SummaryCard.jsx";
+import { getAbuseVariant, getTopMaliciousIps } from "../utils/threat.js";
 
 export default function Dashboard({
   summary,
   alerts = [],
   logs = [],
+  aiPrediction,
   loading,
   onNavigate,
 }) {
@@ -36,6 +40,8 @@ export default function Dashboard({
       })
       .slice(0, 3);
   }, [alerts]);
+
+  const topMaliciousIps = useMemo(() => getTopMaliciousIps(alerts, 3), [alerts]);
 
   const priorityLabel = highThreatCount
     ? "Immediate analyst attention recommended."
@@ -155,9 +161,16 @@ export default function Dashboard({
                       <p className="text-sm font-semibold text-white">
                         {alert.type}
                       </p>
-                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                        {alert.severity}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                          {alert.severity}
+                        </span>
+                        {alert.abuse_confidence_score != null ? (
+                          <Badge variant={getAbuseVariant(alert.abuse_confidence_score)}>
+                            {alert.abuse_confidence_score}
+                          </Badge>
+                        ) : null}
+                      </div>
                     </div>
                     <p className="mt-2 text-sm text-slate-400">{alert.ip}</p>
                   </div>
@@ -169,10 +182,66 @@ export default function Dashboard({
               )}
             </div>
           </article>
+
+          <article className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(26,17,18,0.96)_0%,rgba(12,16,24,0.92)_100%)] p-5 shadow-[0_24px_70px_rgba(2,8,23,0.22)] ring-1 ring-white/6 backdrop-blur-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
+                  Top malicious IPs
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold text-white">
+                  AbuseIPDB watch
+                </h3>
+              </div>
+              <span className="rounded-full border border-rose-400/20 bg-rose-400/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-100">
+                Top 3
+              </span>
+            </div>
+            <div className="mt-4 space-y-3">
+              {topMaliciousIps.length ? (
+                topMaliciousIps.map((alert, index) => (
+                  <div
+                    key={`${alert.ip}-${index}`}
+                    className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-white">{alert.ip}</p>
+                      <Badge variant={getAbuseVariant(alert.abuse_confidence_score)}>
+                        {alert.abuse_confidence_score}
+                      </Badge>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
+                      {alert.country ? (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                          {alert.country}
+                        </span>
+                      ) : null}
+                      {alert.isp ? (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                          {alert.isp}
+                        </span>
+                      ) : null}
+                      {alert.total_reports != null ? (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                          {alert.total_reports} reports
+                        </span>
+                      ) : null}
+                      {alert.is_malicious ? <Badge variant="ai">Malicious</Badge> : null}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-8 text-center text-sm text-slate-400">
+                  No public enriched IPs are available yet.
+                </div>
+              )}
+            </div>
+          </article>
         </div>
       </section>
 
       <SummaryCard summary={summary} loading={loading} />
+      <AiSummaryPanel ai={aiPrediction} loading={loading} />
     </div>
   );
 }

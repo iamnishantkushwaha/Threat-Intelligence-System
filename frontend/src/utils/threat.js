@@ -97,3 +97,40 @@ export function buildAiSummary(alerts = []) {
 export function getLogStatusBadge(status) {
   return status === "success" ? "success" : "failed";
 }
+
+export function getAbuseVariant(score) {
+  if ((score ?? 0) >= 80) {
+    return "high";
+  }
+
+  if ((score ?? 0) >= 50) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+export function getTopMaliciousIps(alerts = [], limit = 3) {
+  const strongestByIp = new Map();
+
+  alerts.forEach((alert) => {
+    if (!alert?.ip || alert.abuse_confidence_score == null) {
+      return;
+    }
+
+    const current = strongestByIp.get(alert.ip);
+    if (
+      !current ||
+      (alert.abuse_confidence_score ?? 0) > (current.abuse_confidence_score ?? 0)
+    ) {
+      strongestByIp.set(alert.ip, alert);
+    }
+  });
+
+  return [...strongestByIp.values()]
+    .sort(
+      (left, right) =>
+        (right.abuse_confidence_score ?? 0) - (left.abuse_confidence_score ?? 0),
+    )
+    .slice(0, limit);
+}

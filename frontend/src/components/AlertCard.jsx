@@ -25,6 +25,18 @@ function severityStyles(severity) {
   };
 }
 
+function abuseVariant(score) {
+  if ((score ?? 0) >= 75) {
+    return "border-rose-400/20 bg-rose-400/12 text-rose-100";
+  }
+
+  if ((score ?? 0) >= 30) {
+    return "border-amber-300/20 bg-amber-300/12 text-amber-100";
+  }
+
+  return "border-white/10 bg-white/8 text-slate-200";
+}
+
 function AlertSkeleton() {
   return (
     <article className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4 shadow-[0_18px_50px_rgba(0,0,0,0.16)] backdrop-blur-xl">
@@ -75,6 +87,25 @@ export default function AlertCard({ alerts = [], loading }) {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                   Incident snapshot
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span
+                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] shadow-lg ${styles.badge}`}
+                  >
+                    {alert.severity}
+                  </span>
+                  {alert.abuse_confidence_score != null ? (
+                    <span
+                      className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${abuseVariant(alert.abuse_confidence_score)}`}
+                    >
+                      Abuse {alert.abuse_confidence_score}
+                    </span>
+                  ) : null}
+                  {alert.is_malicious ? (
+                    <span className="rounded-full border border-cyan-300/20 bg-cyan-300/12 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-100">
+                      Malicious IP
+                    </span>
+                  ) : null}
+                </div>
                 <h3 className="mt-3 text-[18px] font-semibold text-white">
                   {alert.type}
                 </h3>
@@ -84,12 +115,29 @@ export default function AlertCard({ alerts = [], loading }) {
                 <p className="mt-4 border-t border-white/10 pt-4 text-[14px] leading-6 text-slate-200/90">
                   {alert.summary}
                 </p>
+                {alert.intel_summary ? (
+                  <div className="mt-4 rounded-[18px] border border-cyan-300/14 bg-cyan-300/8 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-100/80">
+                      Threat Intel
+                    </p>
+                    <p className="mt-2 text-[13px] leading-6 text-slate-200/90">
+                      {alert.intel_summary}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-slate-300">
+                      {alert.country_name ? (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                          {alert.country_name}
+                        </span>
+                      ) : null}
+                      {alert.isp ? (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                          {alert.isp}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-              <span
-                className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] shadow-lg ${styles.badge}`}
-              >
-                {alert.severity}
-              </span>
             </div>
           </article>
         );

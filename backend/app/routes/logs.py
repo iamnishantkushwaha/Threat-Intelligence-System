@@ -1,18 +1,10 @@
 from fastapi import APIRouter
-from app.services.log_service import read_logs
-from app.services.detection_service import analyze_logs
-from app.services.summary_service import generate_summary
 
-router = APIRouter()
+from app.models.log_model import LogsResponse
+from app.services.log_service import read_logs
+
+router = APIRouter(tags=["logs"])
 
 @router.get("/logs")
-def get_logs():
-    return {"logs": read_logs()}
-
-@router.get("/analyze")
-def get_analysis():
-    return {"alerts": analyze_logs()}
-
-@router.get("/summary")
-def get_summary():
-    return {"summary": generate_summary()}
+def get_logs() -> LogsResponse:
+    return LogsResponse(logs=read_logs())

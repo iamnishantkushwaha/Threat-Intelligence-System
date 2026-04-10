@@ -49,6 +49,7 @@ export default function App() {
   const [summary, setSummary] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [aiPrediction, setAiPrediction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activePage, setActivePage] = useState("dashboard");
@@ -63,7 +64,7 @@ export default function App() {
       setError("");
 
       try {
-        const [summaryData, alertsData, logsData] = await Promise.all([
+        const [summaryData, analysisData, logsData] = await Promise.all([
           fetchSummary(),
           fetchAnalysis(),
           fetchLogs(),
@@ -74,7 +75,8 @@ export default function App() {
         }
 
         setSummary(summaryData);
-        setAlerts(alertsData);
+        setAlerts(analysisData.alerts);
+        setAiPrediction(analysisData.aiPrediction);
         setLogs(logsData);
       } catch (loadError) {
         console.error("Failed to load application data:", loadError);
@@ -109,7 +111,16 @@ export default function App() {
   const filteredAlerts = useMemo(() => {
     return alerts.filter((alert) =>
       matchesQuery(
-        [alert.type, alert.ip, alert.summary, alert.severity],
+        [
+          alert.type,
+          alert.ip,
+          alert.summary,
+          alert.severity,
+          alert.country,
+          alert.isp,
+          alert.domain,
+          alert.usage_type,
+        ],
         searchQuery,
       ),
     );
@@ -143,9 +154,10 @@ export default function App() {
     setLoading(true);
     setError("");
     Promise.all([fetchSummary(), fetchAnalysis(), fetchLogs()])
-      .then(([summaryData, alertsData, logsData]) => {
+      .then(([summaryData, analysisData, logsData]) => {
         setSummary(summaryData);
-        setAlerts(alertsData);
+        setAlerts(analysisData.alerts);
+        setAiPrediction(analysisData.aiPrediction);
         setLogs(logsData);
       })
       .catch((retryError) => {
@@ -159,6 +171,7 @@ export default function App() {
     summary,
     alerts: filteredAlerts,
     logs: filteredLogs,
+    aiPrediction,
     loading,
     onNavigate: setActivePage,
   };
