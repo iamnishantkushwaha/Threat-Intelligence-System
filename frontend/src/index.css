@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0b10;
+  --color-surface: #12141c;
+  --color-primary: #0ea5e9;
+  --color-secondary: #6366f1;
+  --color-accent: #f43f5e;
+  --color-muted: #94a3b8;
+  
+  --font-sans: "Inter", sans-serif;
+  
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+}
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Shared base button styles */
+  .btn-base {
+    @apply px-6 py-2.5 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 text-white font-medium;
+  }
+
+  .glass-card {
+    @apply bg-surface/80 backdrop-blur-md border border-white/5 rounded-2xl;
+  }
+  
+  .primary-button {
+    @apply px-6 py-2.5 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 bg-primary hover:bg-primary/80 text-white font-medium shadow-lg shadow-primary/20;
+  }
+  
+  .secondary-button {
+    @apply px-6 py-2.5 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50 bg-white/5 hover:bg-white/10 text-white font-medium border border-white/10;
+  }
+  
+  .status-badge {
+    @apply px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20;
+}
