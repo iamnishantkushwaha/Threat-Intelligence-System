@@ -7,6 +7,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your_super_secret_key_change_this_in_production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    
+    # External Intel APIs
+    VIRUSTOTAL_API_KEY: str = "YOUR_VT_API_KEY"
+    ABUSEIPDB_API_KEY: str = "YOUR_ABUSEIPDB_API_KEY"
+    HIBP_API_KEY: str = "YOUR_HIBP_API_KEY"
 
     class Config:
         env_file = ".env"

@@ -40,77 +40,77 @@ const Logs = () => {
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">System Telemetry</h1>
-          <p className="text-muted text-sm mt-1">Live feed of Windows Security and system events</p>
+    <div className="space-y-6 animate-fade-in pb-8">
+      {/* Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-white">Logs</h1>
+          <p className="text-slate-500 text-sm">Security events and system telemetry stream.</p>
         </div>
-        <div className="flex gap-4">
+        
+        <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
             <input 
               type="text" 
               placeholder="Search logs..." 
-              className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 focus:border-primary/50 outline-none transition-all w-64"
+              className="modern-input !pl-11 w-full sm:w-64 py-2"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button className="secondary-button flex items-center gap-2">
-            <Filter size={18} />
-            <span>Filter</span>
+          <button 
+            onClick={() => {
+              import('react-hot-toast').then(t => t.default("Log filtering coming soon."));
+            }}
+            className="secondary-button py-2 px-4 text-sm"
+          >
+            <Filter size={16} />
+            Filter
           </button>
         </div>
       </div>
 
       <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/5 bg-white/5">
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Timestamp</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Device</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Event ID</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Source</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Details</th>
-                <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider text-right">Risk</th>
+              <tr className="bg-white/[0.02] border-b border-white/5">
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Device</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Event</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Message</th>
+                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Risk</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
-                <tr><td colSpan="6" className="px-6 py-20 text-center text-muted">Awaiting telemetry stream...</td></tr>
+                <tr><td colSpan="5" className="px-6 py-20 text-center text-slate-500 text-sm">Loading logs...</td></tr>
               ) : filteredLogs.length === 0 ? (
-                <tr><td colSpan="6" className="px-6 py-20 text-center text-muted italic">No logs found matching your criteria.</td></tr>
+                <tr><td colSpan="5" className="px-6 py-20 text-center text-slate-500 text-sm">No logs found.</td></tr>
               ) : filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-white/5 transition-colors group">
-                  <td className="px-6 py-4 text-xs font-mono text-muted">
-                    {new Date(log.timestamp).toLocaleString()}
+                <tr key={log.id} className="hover:bg-white/[0.02] border-b border-white/5 last:border-0 transition-colors">
+                  <td className="px-6 py-4 text-xs text-slate-500 font-mono">
+                    {new Date(log.timestamp).toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Monitor size={14} className="text-primary" />
-                      <span className="text-sm font-medium">{log.device_name}</span>
-                    </div>
+                    <span className="text-xs font-bold text-white">{log.device_name}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xs font-bold px-2 py-1 rounded bg-white/5 border border-white/10">
+                    <span className="px-2 py-0.5 rounded bg-white/5 text-[10px] font-mono text-slate-400">
                       {log.event_id}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-muted">
-                    {log.source}
-                  </td>
                   <td className="px-6 py-4 max-w-md">
-                    <div className="text-xs text-white/70 font-mono truncate" title={log.log}>
+                    <div className="text-xs text-slate-400 truncate" title={log.log}>
                       {log.log}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${
-                      log.risk_score >= 80 ? 'bg-accent/10 text-accent' :
-                      log.risk_score >= 50 ? 'bg-orange-500/10 text-orange-500' :
-                      'bg-emerald-500/10 text-emerald-500'
+                    <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold border ${
+                      log.risk_score >= 80 ? 'bg-accent/5 text-accent border-accent/20' :
+                      log.risk_score >= 50 ? 'bg-orange-500/5 text-orange-500 border-orange-500/20' :
+                      'bg-success/5 text-success border-success/20'
                     }`}>
                       {log.risk_score}
                     </div>

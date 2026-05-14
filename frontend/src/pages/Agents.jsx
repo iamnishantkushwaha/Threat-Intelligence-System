@@ -10,7 +10,8 @@ import {
   Clock,
   X,
   Copy,
-  Check
+  Check,
+  Download
 } from 'lucide-react';
 
 const Agents = () => {
@@ -23,6 +24,8 @@ const Agents = () => {
 
   useEffect(() => {
     fetchAgents();
+    const interval = setInterval(fetchAgents, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchAgents = async () => {
@@ -48,7 +51,7 @@ const Agents = () => {
   };
 
   const handleDeleteAgent = async (id) => {
-    if (window.confirm('Are you sure you want to delete this agent?')) {
+    if (window.confirm('Confirm permanent decommissioning of this agent node?')) {
       try {
         await agentService.deleteAgent(id);
         fetchAgents();
@@ -64,161 +67,189 @@ const Agents = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadPackage = async () => {
+    try {
+      const response = await agentService.downloadAgent();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'ThreatIQ-Agent-Production.zip');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Download failed', err);
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Agents Management</h1>
-          <p className="text-muted text-sm mt-1">Manage and monitor your deployed security agents</p>
+    <div className="space-y-6 animate-fade-in pb-8">
+      {/* Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-white">Agents</h1>
+          <p className="text-slate-500 text-sm">Manage distributed security agents in real-time.</p>
         </div>
-        <button 
-          onClick={() => { setShowModal(true); setCreatedAgent(null); }}
-          className="primary-button flex items-center gap-2"
-        >
-          <Plus size={18} />
-          <span>Register New Agent</span>
-        </button>
+        
+        <div className="flex gap-3">
+          <button 
+            onClick={handleDownloadPackage}
+            className="secondary-button text-xs py-2 px-4"
+          >
+            <Download size={16} />
+            Download Agent
+          </button>
+          
+          <button 
+            onClick={() => { setShowModal(true); setCreatedAgent(null); }}
+            className="primary-button text-xs py-2 px-4"
+          >
+            <Plus size={16} />
+            Register Agent
+          </button>
+        </div>
       </div>
 
+      {/* Agents Table */}
       <div className="glass-card overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-white/5 bg-white/5">
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Device Name</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">OS</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Last Seen</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider">Created</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted uppercase tracking-wider text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/5">
-            {loading ? (
-              <tr><td colSpan="6" className="px-6 py-10 text-center text-muted">Loading agents...</td></tr>
-            ) : agents.length === 0 ? (
-              <tr><td colSpan="6" className="px-6 py-10 text-center text-muted italic">No agents registered yet.</td></tr>
-            ) : agents.map((agent) => (
-              <tr key={agent.id} className="hover:bg-white/5 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                      <Monitor size={18} />
-                    </div>
-                    <span className="font-medium">{agent.device_name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`status-badge ${
-                    agent.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted/10 text-muted'
-                  }`}>
-                    {agent.status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-white/70 capitalize">{agent.os}</span>
-                </td>
-                <td className="px-6 py-4 text-sm text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={14} />
-                    {agent.last_seen ? new Date(agent.last_seen).toLocaleString() : 'Never'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar size={14} />
-                    {new Date(agent.created_at).toLocaleDateString()}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => handleDeleteAgent(agent.id)}
-                    className="p-2 text-muted hover:text-accent transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-white/[0.01]">
+                <th className="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Agent</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Operating System</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Last Seen</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {loading ? (
+                <tr><td colSpan="5" className="px-6 py-20 text-center text-slate-500 text-sm">Loading agents...</td></tr>
+              ) : agents.length === 0 ? (
+                <tr><td colSpan="5" className="px-6 py-20 text-center text-slate-500 text-sm">No agents registered.</td></tr>
+              ) : agents.map((agent) => (
+                <tr key={agent.id} className="hover:bg-white/[0.02] border-b border-white/5 last:border-0 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-primary">
+                        <Monitor size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white">{agent.device_name}</span>
+                        <span className="text-[10px] font-mono text-slate-500">{agent.id.substring(0, 12)}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`status-badge ${agent.status === 'active' ? 'text-success border-success/20 bg-success/5' : 'text-slate-500 border-white/5 bg-white/5'}`}>
+                      {agent.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-xs text-slate-300 font-bold">{agent.os || 'Unknown'}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs text-slate-300">
+                      {agent.last_seen ? new Date(agent.last_seen).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Never'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button 
+                      onClick={() => handleDeleteAgent(agent.id)}
+                      className="p-2 text-slate-500 hover:text-accent transition-colors"
+                      title="Delete Agent"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Register Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
-          <div className="glass-card w-full max-w-lg p-8 relative z-10 shadow-2xl border-white/10 animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-start mb-6">
-              <h2 className="text-xl font-bold">Register Agent</h2>
-              <button onClick={() => setShowModal(false)} className="text-muted hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
-
-            {!createdAgent ? (
-              <form onSubmit={handleCreateAgent} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted">Device Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Workstation-Alpha"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:border-primary/50 outline-none transition-all"
-                    value={newAgentName}
-                    onChange={(e) => setNewAgentName(e.target.value)}
-                  />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-fade-in">
+          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowModal(false)}></div>
+          <div className="w-full max-w-md relative z-10">
+            <div className="glass-card p-6 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Register Agent</h2>
+                  <p className="text-slate-500 text-xs">Provision a new security endpoint.</p>
                 </div>
-                <button type="submit" className="w-full primary-button py-3">
-                  Generate Credentials
+                <button onClick={() => setShowModal(false)} className="text-slate-500 hover:text-white transition-colors">
+                  <X size={20} />
                 </button>
-              </form>
-            ) : (
-              <div className="space-y-6">
-                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm">
-                  Agent registered successfully! Copy these credentials to your <code>config.json</code>.
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-muted font-bold">Agent ID</label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-black/40 rounded-lg px-4 py-2 text-xs font-mono border border-white/5 overflow-hidden text-ellipsis">
-                        {createdAgent.id}
-                      </div>
-                      <button onClick={() => copyToClipboard(createdAgent.id)} className="p-2 hover:bg-white/5 rounded-lg text-primary transition-colors">
-                        <Copy size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-muted font-bold">API Key</label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 bg-black/40 rounded-lg px-4 py-2 text-xs font-mono border border-white/5 overflow-hidden text-ellipsis">
-                        {createdAgent.api_key}
-                      </div>
-                      <button onClick={() => copyToClipboard(createdAgent.api_key)} className="p-2 hover:bg-white/5 rounded-lg text-primary transition-colors">
-                        <Copy size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex items-center justify-between">
-                  {copied && (
-                    <span className="text-xs text-emerald-500 flex items-center gap-1">
-                      <Check size={14} /> Copied to clipboard
-                    </span>
-                  )}
-                  <button 
-                    onClick={() => setShowModal(false)}
-                    className="secondary-button py-2 ml-auto"
-                  >
-                    Close
-                  </button>
-                </div>
               </div>
-            )}
+
+              {!createdAgent ? (
+                <form onSubmit={handleCreateAgent} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Device Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. WORKSTATION-01"
+                      className="modern-input py-2 text-sm"
+                      value={newAgentName}
+                      onChange={(e) => setNewAgentName(e.target.value)}
+                    />
+                  </div>
+                  <button type="submit" className="w-full primary-button py-2 text-sm font-bold">
+                    Register Agent
+                  </button>
+                </form>
+              ) : (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="p-4 rounded-lg bg-success/5 border border-success/10 flex items-center gap-4">
+                    <ShieldCheck size={24} className="text-success" />
+                    <span className="text-sm font-bold text-success">Agent Registered Successfully</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Agent ID', value: createdAgent.id },
+                      { label: 'API Key', value: createdAgent.api_key }
+                    ].map((item, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{item.label}</label>
+                        <div className="flex gap-2">
+                          <div className="flex-1 bg-black/40 rounded-lg px-4 py-2 text-xs font-mono border border-white/5 text-slate-300 break-all">
+                            {item.value}
+                          </div>
+                          <button 
+                            onClick={() => copyToClipboard(item.value)} 
+                            className="p-2 bg-primary text-slate-950 rounded-lg hover:bg-primary/90 transition-colors"
+                          >
+                            <Copy size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-between gap-4 border-t border-white/5">
+                    <div className="h-4">
+                      {copied && (
+                        <div className="flex items-center gap-2 text-success text-[10px] font-bold uppercase tracking-wider">
+                          <Check size={12} /> Copied
+                        </div>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => setShowModal(false)}
+                      className="secondary-button py-2 px-6 text-xs font-bold"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -226,4 +257,6 @@ const Agents = () => {
   );
 };
 
+
 export default Agents;
+

@@ -1,5 +1,5 @@
 fastapi
-uvicorn
+uvicorn[standard]
 motor
 pymongo
 python-dotenv
@@ -7,3 +7,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 reportlab
 pydantic-settings
+websockets
