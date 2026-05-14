@@ -2,6 +2,10 @@
 
 ThreatIQ is a modern, full-stack threat intelligence and endpoint monitoring system. It features a high-performance FastAPI backend, a real-time React dashboard, and a lightweight Python-based Windows security agent.
 
+## 📘 Run Instructions
+
+For complete setup and execution steps (Docker, local development, and Windows agent), see `RUN.md`.
+
 ## 🚀 Quick Start (Docker)
 
 To spin up the entire infrastructure (Backend, Frontend, and MongoDB):
@@ -14,15 +18,19 @@ docker-compose up --build
 - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## 🛡️ Windows Agent Setup
+
 The agent monitors system logs, processes, and files for suspicious activity.
 
 ### **Verification: Is the Agent Working?**
+
 1.  **Dashboard Status:** The agent will appear as `ACTIVE` on the **Agents** page once it connects.
 2.  **Heartbeat:** Check `agent.log` in the agent folder. You should see "Sending heartbeat..." every few seconds.
 3.  **Real-Time Alerts:** Create an empty file named `malware.exe` in your Downloads folder. If your YARA rules are active, the agent will instantly report it to the **Malware** dashboard.
 
 ### **How to Generate the `.exe`**
+
 To package the agent into a standalone Windows Executable:
+
 1.  Open a terminal in the `windows-agent/` folder on your Windows machine.
 2.  Run the build script:
     ```cmd
